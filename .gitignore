@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/packages
+/src/.vs
+/src/CodeDiff.Core/bin/Debug
+/src/CodeDiff.Core/obj/Debug
+/src/CodeDiff.Core.UnitTests/bin/Debug
+/src/CodeDiff.Core.UnitTests/obj/Debug
+/src/CodeDiff.Web.AspNet461/.idea
+/src/CodeDiff.Web.AspNet461/bin
+/src/CodeDiff.Web.AspNet461/obj/Debug

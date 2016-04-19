@@ -1,0 +1,19 @@
+.container {
+    width: 100%
+}
+
+.diff-original {
+    background-color: white;
+}
+
+.diff-inserted {
+    background-color: green;
+}
+
+.diff-modified {
+    background-color: yellow;
+}
+
+.diff-removed {
+    background-color: red;
+}
