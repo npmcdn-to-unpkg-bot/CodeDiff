@@ -75,8 +75,7 @@ namespace MsdrRu.CodeDiff.DiffAlgorithm
 
     public class Diff
     {
-
-        /// <summary>details of one difference.</summary>
+        /// <summary>Вetails of one difference.</summary>
         public struct Item
         {
             /// <summary>Start Line number in Data A.</summary>
@@ -85,9 +84,9 @@ namespace MsdrRu.CodeDiff.DiffAlgorithm
             public int StartB;
 
             /// <summary>Number of changes in Data A.</summary>
-            public int deletedA;
+            public int DeletedA;
             /// <summary>Number of changes in Data B.</summary>
-            public int insertedB;
+            public int InsertedB;
         } // Item
 
         /// <summary>
@@ -592,8 +591,8 @@ namespace MsdrRu.CodeDiff.DiffAlgorithm
                         aItem = new Item();
                         aItem.StartA = StartA;
                         aItem.StartB = StartB;
-                        aItem.deletedA = LineA - StartA;
-                        aItem.insertedB = LineB - StartB;
+                        aItem.DeletedA = LineA - StartA;
+                        aItem.InsertedB = LineB - StartB;
                         a.Add(aItem);
                     } // if
                 } // if

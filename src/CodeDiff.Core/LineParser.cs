@@ -1,81 +1,166 @@
 ﻿using System;
 using System.Diagnostics.Contracts;
+using System.IO;
 using MsdrRu.CodeDiff.DiffAlgorithm;
 
 namespace MsdrRu.CodeDiff
 {
     public class LineParser
     {
-        public static Tuple<Line[], Line[]> Parse(Diff.Item[] items, string version1, string version2)
+        public static Tuple<Line, Line> Parse(Diff.Item[] items, string version1, string version2)
         {
             Contract.Requires<ArgumentNullException>(items != null);
             Contract.Requires<ArgumentException>(!string.IsNullOrEmpty(version1));
             Contract.Requires<ArgumentException>(!string.IsNullOrEmpty(version1));
 
-            // ReSharper disable once SuggestVarOrType_Elsewhere
-            string[] version1Lines = version1.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-            // ReSharper disable once SuggestVarOrType_Elsewhere
-            string[] version2Lines = version2.Split(new[] { "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            //First Line reference.
+            var version1FirstLine = ParseToLinkedLineList(version1);
+            //First Line reference.
+            var version2FirstLine = ParseToLinkedLineList(version2);
 
-            var version1LinesDescriptions = new Line[version1Lines.Length];
-            var version2LinesDescriptions = new Line[version2Lines.Length];
-
-            for (int i = 0; i < version1Lines.Length; i++)
-            {
-                version1LinesDescriptions[i] = new Line((ulong) (i + 1))
-                {
-                    Status = LineStatus.Original,
-                    Content = version1Lines[i]
-                };
-            }
-
-            for (int i = 0; i < version2Lines.Length; i++)
-            {
-                version2LinesDescriptions[i] = new Line((ulong)(i + 1))
-                {
-                    Status = LineStatus.Original,
-                    Content = version2Lines[i]
-                };
-            }
+            var version1CurrentLine = version1FirstLine;
+            var version2CurrentLine = version2FirstLine;
 
             // ReSharper disable once SuggestVarOrType_SimpleTypes
             foreach (Diff.Item item in items)
             {
-                //Make HTML for the modified rows.
-                if (item.deletedA > 0 && item.insertedB > 0)
+                //Modified rows.
+                if (item.DeletedA > 0 && item.InsertedB > 0)
                 {
-                    for (var i = 0; i < item.deletedA; i++)
-                    {
-                        version1LinesDescriptions[item.StartA + i - 1].Status = LineStatus.Modified;
-                    }
+                    var line1 = (ulong) item.StartA;
+                    var line2 = (ulong) item.StartB;
+                    var affected1 = (ulong)item.DeletedA;
+                    var affected2 = (ulong)item.InsertedB;
 
-                    for (var i = 0; i < item.insertedB; i++)
+                    ulong i = 1;
+                    while (affected1 >= i || affected2 >= i)
                     {
-                        version2LinesDescriptions[item.StartB + i - 1].Status = LineStatus.Modified;
+                        if (affected1 >= i && affected2 >= i)
+                        {
+                            ModifyLineStatus(ref version1FirstLine, version1CurrentLine, line1 + i, LineStatus.Modified);
+                            ModifyLineStatus(ref version2FirstLine, version2CurrentLine, line2 + i, LineStatus.Modified);
+                        }
+                        else if (affected1 < i && affected2 >= i)
+                        {
+                            AddEmptyLine(ref version1FirstLine, version1CurrentLine, line1 - 1 + i);
+                            ModifyLineStatus(ref version2FirstLine, version2CurrentLine, line2 + i, LineStatus.Inserted);
+                        }
+                        else
+                        {
+                            ModifyLineStatus(ref version1FirstLine, version1CurrentLine, line1 + i, LineStatus.Removed);
+                            AddEmptyLine(ref version2FirstLine, version2CurrentLine, line2 - 1 + i);
+                        }
+
+                        i++;
+
                     }
                 }
 
-                //Make HTML for the removed rows.
-                if (item.deletedA > 0 && item.insertedB == 0)
+                //Removed rows.
+                if (item.DeletedA > 0 && item.InsertedB == 0)
                 {
-                    for (var i = 0; i < item.deletedA; i++)
+                    for (var i = 1; i <= item.DeletedA; i++)
                     {
-                        version1LinesDescriptions[item.StartA + i - 1].Status = LineStatus.Removed;
+                        ModifyLineStatus(ref version1FirstLine, version1CurrentLine, (ulong)(item.StartA + i), LineStatus.Removed);
+                        AddEmptyLine(ref version2FirstLine, version2CurrentLine, (ulong)(item.StartB));
                     }
                 }
 
-                //Make HTML for the inserted rows.
-                // ReSharper disable once InvertIf
-                if (item.deletedA == 0 && item.insertedB > 0)
+                //Inserted rows.
+                if (item.DeletedA == 0 && item.InsertedB > 0)
                 {
-                    for (var i = 0; i < item.insertedB; i++)
+                    for (var i = 1; i <= item.InsertedB; i++)
                     {
-                        version2LinesDescriptions[item.StartB + i - 1].Status = LineStatus.Inserted;
+                        ModifyLineStatus(ref version1FirstLine, version2CurrentLine, (ulong)(item.StartB + i), LineStatus.Inserted);
+                        AddEmptyLine(ref version1FirstLine, version1CurrentLine, (ulong)(item.StartA));
                     }
                 }
             }
 
-            return new Tuple<Line[], Line[]>(version1LinesDescriptions, version2LinesDescriptions);
+            return new Tuple<Line, Line>(version1FirstLine, version2FirstLine);
+        }
+
+        private static void ModifyLineStatus(ref Line firstLine, Line currentLine, ulong position, LineStatus lineStatus)
+        {
+            if (position == 0)
+            {
+                firstLine = new Line
+                {
+                    Next = currentLine,
+                    Status = lineStatus
+                };
+            }
+            else
+            {
+                while (currentLine.OriginalLineNumber != position)
+                {
+                    currentLine = currentLine.Next;
+                }
+
+                currentLine.Status = lineStatus;
+            }
+        }
+
+        private static void AddEmptyLine(ref Line firstLine, Line currentLine, ulong position)
+        {
+            if (position == 0)
+            {
+                firstLine = new Line {Next = currentLine};
+            }
+            else
+            {
+                while (currentLine.OriginalLineNumber != position)
+                {
+                    if (currentLine.Next == null)
+                    {
+                        currentLine.Next = new Line();
+                        return;
+                    }
+
+                    currentLine = currentLine.Next;
+                }
+
+                var newLine = new Line { Next = currentLine.Next };
+                currentLine.Next = newLine;
+            }
+        }
+
+        private static Line ParseToLinkedLineList(string inputText)
+        {
+            ulong lineNumber = 1;
+            var firstLine = new Line(lineNumber)
+            {
+                Status = LineStatus.Original
+            };
+
+            using (var reader = new StringReader(inputText))
+            {
+                string line;
+                var currentLine = firstLine;
+
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (lineNumber == 1)
+                    {
+                        currentLine.Content = line;
+                    }
+                    else
+                    {
+                        currentLine.Next = new Line(lineNumber)
+                        {
+                            Content = line,
+                            Status = LineStatus.Original,
+                            Previous = currentLine
+                        };
+
+                        currentLine = currentLine.Next;
+                    }
+
+                    lineNumber++;
+                }
+            }
+
+            return firstLine;
         }
     }
 }

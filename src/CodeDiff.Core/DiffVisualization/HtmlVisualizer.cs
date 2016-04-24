@@ -6,88 +6,67 @@ namespace MsdrRu.CodeDiff.DiffVisualization
 {
     public class HtmlVisualizer
     {
-        public static DiffHtmlVisualizationResult Visualize(Tuple<Line[], Line[]> parsingResults)
+        public static DiffHtmlVisualizationResult Visualize(Tuple<Line, Line> parsingResults)
         {
             Contract.Requires<ArgumentNullException>(parsingResults != null);
 
-            const string emptyStringPattern = "<span></span><pre class=\"diff-empty\"></pre>";
-            const string originalStringPattern = "<span>{0}</span><pre class=\"diff-original\">{1}</pre>";
-            const string insertedStringPattern = "<span>{0}</span><pre class=\"diff-inserted\">{1}</pre>";
-            const string modifiedStringPattern = "<span>{0}</span><pre class=\"diff-modified\">{1}</pre>";
-            const string removedStringPattern = "<span>{0}</span><pre class=\"diff-removed\">{1}</pre>";
-
-            var maxLines = Math.Max(parsingResults.Item1.Length, parsingResults.Item2.Length);
-
-            var version1LinesDescriptions = new Line[maxLines];
-            var version2LinesDescriptions = new Line[maxLines];
-
+            const string emptyStringPattern = "<pre class=\"diff-pre diff-empty\"><span>{0}</span></pre>";
+            const string originalStringPattern = "<pre class=\"diff-pre diff-original\"><span>{0}</span>{1}</pre>";
+            const string insertedStringPattern = "<pre class=\"diff-pre diff-inserted\"><span>{0}</span>{1}</pre>";
+            const string modifiedStringPattern = "<pre class=\"diff-pre diff-modified\"><span>{0}</span>{1}</pre>";
+            const string removedStringPattern = "<pre class=\"diff-pre diff-removed\"><span>{0}</span>{1}</pre>";
 
             var version1DiffHtmlSb = new StringBuilder();
             var version2DiffHtmlSb = new StringBuilder();
 
-            for (var a = 0; a < maxLines; a++)
+            var version1CurrentLine = parsingResults.Item1;
+            var version2CurrentLine = parsingResults.Item2;
+
+            uint i = 1;
+
+            while (true)
             {
-                if (parsingResults.Item1.Length < a)
+                // ReSharper disable once SwitchStatementMissingSomeCases
+                switch (version1CurrentLine.Status)
                 {
-                    version1DiffHtmlSb.Append(emptyStringPattern);
-
-                    var lineNumber = parsingResults.Item2[a].LineNumber;
-                    var content = parsingResults.Item2[a].Content;
-                    version2DiffHtmlSb.Append(string.Format(insertedStringPattern, lineNumber, content));
-                    continue;
+                    case LineStatus.Original:
+                        version1DiffHtmlSb.Append(string.Format(originalStringPattern, i, version1CurrentLine.Content));
+                        break;
+                    case LineStatus.Modified:
+                        version1DiffHtmlSb.Append(string.Format(modifiedStringPattern, i, version1CurrentLine.Content));
+                        break;
+                    case LineStatus.Removed:
+                        version1DiffHtmlSb.Append(string.Format(removedStringPattern, i, version1CurrentLine.Content));
+                        break;
+                    default:
+                        version1DiffHtmlSb.Append(string.Format(emptyStringPattern, i));
+                        break;
                 }
 
-                if (parsingResults.Item2.Length < a)
+                // ReSharper disable once SwitchStatementMissingSomeCases
+                switch (version2CurrentLine.Status)
                 {
-                    var lineNumber = parsingResults.Item1[a].LineNumber;
-                    var content = parsingResults.Item1[a].Content;
-                    version1DiffHtmlSb.Append(string.Format(removedStringPattern, lineNumber, content));
-
-                    version2DiffHtmlSb.Append(emptyStringPattern);
-                    continue;
+                    case LineStatus.Original:
+                        version2DiffHtmlSb.Append(string.Format(originalStringPattern, i, version2CurrentLine.Content));
+                        break;
+                    case LineStatus.Modified:
+                        version2DiffHtmlSb.Append(string.Format(modifiedStringPattern, i, version2CurrentLine.Content));
+                        break;
+                    case LineStatus.Inserted:
+                        version2DiffHtmlSb.Append(string.Format(insertedStringPattern, i, version2CurrentLine.Content));
+                        break;
+                    default:
+                        version2DiffHtmlSb.Append(string.Format(emptyStringPattern, i));
+                        break;
                 }
 
-                if (parsingResults.Item1[a].Status == LineStatus.Original)
+                i++;
+                version1CurrentLine = version1CurrentLine.Next;
+                version2CurrentLine = version2CurrentLine.Next;
+
+                if (version1CurrentLine == null)
                 {
-                    var lineNumber1 = parsingResults.Item1[a].LineNumber;
-                    var content1 = parsingResults.Item1[a].Content;
-                    version1DiffHtmlSb.Append(string.Format(originalStringPattern, lineNumber1, content1));
-
-                    var lineNumber2 = parsingResults.Item2[a].LineNumber;
-                    var content2 = parsingResults.Item2[a].Content;
-                    version2DiffHtmlSb.Append(string.Format(originalStringPattern, lineNumber2, content2));
-                    continue;
-                }
-
-                if (parsingResults.Item1[a].Status == LineStatus.Modified)
-                {
-                    var lineNumber1 = parsingResults.Item1[a].LineNumber;
-                    var content1 = parsingResults.Item1[a].Content;
-                    version1DiffHtmlSb.Append(string.Format(modifiedStringPattern, lineNumber1, content1));
-
-                    var lineNumber2 = parsingResults.Item2[a].LineNumber;
-                    var content2 = parsingResults.Item2[a].Content;
-                    version2DiffHtmlSb.Append(string.Format(modifiedStringPattern, lineNumber2, content2));
-                    continue;
-                }
-
-                if (parsingResults.Item1[a].Status == LineStatus.Removed)
-                {
-                    var lineNumber1 = parsingResults.Item1[a].LineNumber;
-                    var content1 = parsingResults.Item1[a].Content;
-                    version1DiffHtmlSb.Append(string.Format(removedStringPattern, lineNumber1, content1));
-
-                    version2DiffHtmlSb.Append(emptyStringPattern);
-                    continue;
-                }
-
-                if (parsingResults.Item2[a].Status == LineStatus.Inserted)
-                {
-                    version1DiffHtmlSb.Append(emptyStringPattern);
-
-                    var lineNumber2 = parsingResults.Item2[a].LineNumber;
-                    var content2 = parsingResults.Item2[a].Content;
-                    version2DiffHtmlSb.Append(string.Format(originalStringPattern, lineNumber2, content2));
+                    break;
                 }
             }
 

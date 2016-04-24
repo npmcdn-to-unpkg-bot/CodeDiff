@@ -14,6 +14,8 @@ namespace MsdrRu.CodeDiff.Web.AspNet461.Api
             var items = diff.DiffText(codeForCompare.Version1, codeForCompare.Version2);
             var parsed = LineParser.Parse(items, codeForCompare.Version1, codeForCompare.Version2);
 
+            System.Threading.Thread.Sleep(1000);
+
             return Ok(HtmlVisualizer.Visualize(parsed));
         }
     }

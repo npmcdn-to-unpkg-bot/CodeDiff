@@ -15,7 +15,7 @@
             sourceControlService.compare(vm.codeForCompare).then(function(data){
                 vm.textDiffHtmlVisualizationResult.version1DiffHtml = data.data.version1DiffHtml;
                 vm.textDiffHtmlVisualizationResult.version2DiffHtml = data.data.version2DiffHtml;
-                alert('Completed!');
+                //alert('Completed!');
             });
         }
     }
