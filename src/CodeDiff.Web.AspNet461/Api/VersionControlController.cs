@@ -1,7 +1,7 @@
 ﻿using System.Web.Http;
-using AutoMerge.Web.Models;
 using MsdrRu.CodeDiff.DiffAlgorithm;
 using MsdrRu.CodeDiff.DiffVisualization;
+using MsdrRu.CodeDiff.Web.AspNet461.Models;
 
 namespace MsdrRu.CodeDiff.Web.AspNet461.Api
 {

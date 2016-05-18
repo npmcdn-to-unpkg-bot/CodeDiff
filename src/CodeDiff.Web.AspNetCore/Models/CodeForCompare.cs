@@ -1,4 +1,4 @@
-﻿namespace MsdrRu.CodeDiff.Web.AspNet461.Models
+﻿namespace MsdrRu.CodeDiff.Web.AspNetCore.Models
 {
     public class CodeForCompare
     {

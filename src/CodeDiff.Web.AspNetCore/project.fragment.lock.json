@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "exports": {
+    "CodeDiff.Core/1.0.0": {
+      "type": "project",
+      "framework": ".NETFramework,Version=v4.5.1",
+      "compile": {
+        "bin/Debug/CodeDiff.Core.dll": {}
+      },
+      "runtime": {
+        "bin/Debug/CodeDiff.Core.dll": {}
+      }
+    }
+  }
+}

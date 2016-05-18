@@ -11,3 +11,11 @@
 /src/CodeDiff.Web.AspNet461/.idea
 /src/CodeDiff.Web.AspNet461/bin
 /src/CodeDiff.Web.AspNet461/obj/Debug
+/src/CodeDiff.IsolatorCache.user
+/src/wrap/CodeDiff.Core
+/src/artifacts/obj/CodeDiff.Web.AspNetCore/Debug
+/src/artifacts/bin/CodeDiff.Web.AspNetCore
+/src/.idea
+/src/CodeDiff.Web.AspNetCore/node_modules
+/src/CodeDiff.Web.AspNetCore/bin/Debug/net461
+/src/CodeDiff.Web.AspNetCore/obj/Debug/net461
