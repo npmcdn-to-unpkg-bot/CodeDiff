@@ -19,3 +19,5 @@
 /src/CodeDiff.Web.AspNetCore/node_modules
 /src/CodeDiff.Web.AspNetCore/bin/Debug/net461
 /src/CodeDiff.Web.AspNetCore/obj/Debug/net461
+/src/CodeDiff.Web.AspNetCore/wwwroot/.idea
+/src/CodeDiff.Web.AspNetCore/CodeDiff.Web.AspNetCore.xproj.user

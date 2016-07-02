@@ -9,6 +9,13 @@
       },
       "runtime": {
         "bin/Debug/CodeDiff.Core.dll": {}
+      },
+      "contentFiles": {
+        "bin/Debug/CodeDiff.Core.pdb": {
+          "buildAction": "None",
+          "codeLanguage": "any",
+          "copyToOutput": true
+        }
       }
     }
   }
